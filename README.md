@@ -1,72 +1,73 @@
 
-# Script to Update Boot Title and Configure System Hooks
+# Automatic Boot Title Update Script
 
-This script automates the creation of a file that dynamically updates the boot title with the current kernel version whenever the system undergoes a kernel update. It also creates a `pacman` hook to automatically run the update script every time a kernel package is installed or upgraded.
+This script automates the process of updating the boot title in the bootloader configuration files whenever a new kernel version is installed or upgraded on your system. It also sets up a `pacman` hook to ensure the title is updated after each kernel package installation.
 
-## Script Content
+## What the script does:
+1. **Updates the boot title**: The script updates the boot title in the `/boot/loader/entries` configuration files to reflect the current kernel version.
+2. **Sets up a pacman hook**: The script creates a pacman hook that triggers the `update-boot-title.sh` script whenever the `linux*` package is installed or upgraded. This ensures the boot title is updated automatically after kernel updates.
 
-The script performs the following tasks:
+## Steps to run the script:
 
-1. **Creates the `update-boot-title.sh` file:**
-   - This file automatically updates the boot title with the current kernel version.
-   - Each time the kernel is updated, the boot title will be updated to reflect the new kernel version.
-
-2. **Creates the `pacman` hook `update-boot-title.hook`:**
-   - This hook is triggered after installing or upgrading any package that matches the pattern `linux*` (kernel packages).
-   - The `update-boot-title.sh` script will be executed automatically after any kernel package is installed or upgraded.
-
-
-## Installation and Usage
-
-### 1. Run the Script
-
-To get started, copy the following script and save it as a `.sh` file (e.g., `setup-boot-title.sh`). Execute the script with superuser privileges to automatically configure all the necessary files.
+### 1. Create the boot title update script:
+This will create a script that updates the boot title with the current kernel version.
 
 ```bash
-# Download the script
-wget https://example.com/setup-boot-title.sh -O setup-boot-title.sh
+#!/bin/bash
+
+# Create the script to update the boot title with the current kernel version
+cat << 'EOF' | sudo tee /usr/local/bin/update-boot-title.sh > /dev/null
+#!/bin/bash
+
+# Define the directory containing boot entries
+BOOT_ENTRIES="/boot/loader/entries"
+
+# Get the current kernel version
+KERNEL_VERSION=$(uname -r)
+
+# Loop through each boot entry configuration file in the boot entries directory
+for entry in "$BOOT_ENTRIES"/*.conf; do
+    # Check if the file contains a title line
+    if grep -q '^title' "$entry"; then
+        # Update the title to reflect the current kernel version
+        sed -i "s/^title.*/title   Linux $KERNEL_VERSION/" "$entry"
+    fi
+done
+EOF
 
 # Make the script executable
-chmod +x setup-boot-title.sh
-
-# Run the script as superuser
-sudo ./setup-boot-title.sh
+sudo chmod +x /usr/local/bin/update-boot-title.sh
 ```
 
-### 2. How It Works
-
-- **`update-boot-title.sh`**:
-   - The system's boot title will be automatically updated to reflect the current kernel version (e.g., "Linux 5.10.0-1").
-   - The boot configuration file is located in `/boot/loader/entries`.
-
-- **`pacman` hook**:
-   - Every time a kernel package is installed or updated, the script will be executed to update the boot title.
-
-- **`vash.sh`**:
-   - The file is created at `/usr/local/bin/vash.sh`. You can edit it to add custom commands or configurations for your system.
-
-### 3. Customizations
-
-- You can customize the `vash.sh` script to include other configurations.
-- If you do not wish to run the hook file, you can simply remove or disable the `/etc/pacman.d/hooks/update-boot-title.hook` file.
-
-## Removal
-
-If you wish to remove the files created by the script, you can do so manually:
+### 2. Create the pacman hook:
+This sets up a pacman hook that will run the script automatically after kernel upgrades.
 
 ```bash
-# Remove the update script
-sudo rm /usr/local/bin/update-boot-title.sh
+# Create the directory for pacman hooks if it doesn't already exist
+sudo mkdir -p /etc/pacman.d/hooks
 
-# Remove the pacman hook
-sudo rm /etc/pacman.d/hooks/update-boot-title.hook
+# Create the pacman hook file to update the boot title automatically after kernel updates
+cat << 'EOF' | sudo tee /etc/pacman.d/hooks/update-boot-title.hook > /dev/null
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = linux*
 
+[Action]
+Description = Updating boot title with current kernel version...
+When = PostTransaction
+Exec = /usr/local/bin/update-boot-title.sh
+EOF
 ```
 
-## Author
+### 3. Verify the setup:
+After running the script, it will update the bootloader title automatically each time the kernel is installed or upgraded. You can check the `/boot/loader/entries` directory to see if the titles are being updated correctly.
 
-This script was created by [Jonathan](https://github.com/Jonathansanfilippo) to automate the process of updating the boot title and configuring the system for custom setups.
+## Conclusion:
+This setup ensures that your bootloader entries are always up to date with the current kernel version without requiring manual intervention after every kernel update. It's an efficient way to keep track of which kernel version is running when booting the system.
+
+---
 
 ## License
-
-Distributed under the MIT License. See the LICENSE file for more details.
+This script is open source. Feel free to modify and use it as needed.
