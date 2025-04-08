@@ -1,7 +1,7 @@
 
 # Script to Update Boot Title and Configure System Hooks
 
-This script automates the creation of a file that dynamically updates the boot title with the current kernel version whenever the system undergoes a kernel update. It also creates a `pacman` hook to automatically run the update script every time a kernel package is installed or upgraded. Additionally, the script creates a configuration file called `vash.sh` for custom command usage.
+This script automates the creation of a file that dynamically updates the boot title with the current kernel version whenever the system undergoes a kernel update. It also creates a `pacman` hook to automatically run the update script every time a kernel package is installed or upgraded.
 
 ## Script Content
 
@@ -15,9 +15,6 @@ The script performs the following tasks:
    - This hook is triggered after installing or upgrading any package that matches the pattern `linux*` (kernel packages).
    - The `update-boot-title.sh` script will be executed automatically after any kernel package is installed or upgraded.
 
-3. **Creates the `vash.sh` configuration script:**
-   - A placeholder script that is ready to be customized with logic for configuring `vash` or other applications.
-   - It can be used for additional configurations or custom management scripts.
 
 ## Installation and Usage
 
@@ -64,8 +61,6 @@ sudo rm /usr/local/bin/update-boot-title.sh
 # Remove the pacman hook
 sudo rm /etc/pacman.d/hooks/update-boot-title.hook
 
-# Remove the vash.sh configuration script
-sudo rm /usr/local/bin/vash.sh
 ```
 
 ## Author
